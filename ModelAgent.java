@@ -92,6 +92,17 @@ public class ModelAgent
         return brain;
     }
     
+    public void loss(double[][] trnInput, double[][] trnOut){
+        double[][] layerIn = new double[cColumns+2][];
+        double p = 0;
+        for(int i = 0; i < trnInput.length; i++){
+         double[] y = checkInputs(trnInput[i], layerIn);
+         p += Math.pow(y[0] - (trnOut[i][0]), 2);
+        }
+        
+        System.out.println("Loss: " + (p / trnInput.length));
+    }
+    
     /**
      * Trains the Agent on given inputs and outputs for a number of iterations.
      * @param trnInput array of training inputs. trnInput.length should = trnOut.length
@@ -109,6 +120,9 @@ public class ModelAgent
         }
         
         for (int i = 0; i < iterations; i++) {
+            
+            loss(trnInput, trnOut);
+            
             double[][][] weightChange = initializeWithSize(brain);
             for (int j = 0; j < trnInput.length; j++) {
                 double[][] layerIn = new double[cColumns+2][];
@@ -132,6 +146,8 @@ public class ModelAgent
                 for (int k = 0; k < brain[i][j].length; k++)
                     brain[i][j][k] -= weightChange[i][j][k];
     }
+    
+  
 
     private void backPropagate(double[][] layerIn,double[] exOut, double[][][] weightChange) {
         double[][] RNodeDelta = new double[layerIn.length - 1][];
