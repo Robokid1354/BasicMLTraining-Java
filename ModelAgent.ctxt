@@ -27,8 +27,8 @@ comment6.target=void\ train(double[][],\ double[][],\ int)
 comment6.text=\r\n\ Trains\ the\ Agent\ on\ given\ inputs\ and\ outputs\ for\ a\ number\ of\ iterations.\r\n\ @param\ trnInput\ array\ of\ training\ inputs.\ trnInput.length\ should\ \=\ trnOut.length\r\n\ @param\ trnOut\ array\ of\ training\ outputs.\ trnInput.length\ should\ \=\ trnOut.length\r\n\ @param\ iterations\ the\ number\ of\ iterations\ to\ train\ the\ Agent\ for.\r\n
 comment7.params=weightChange
 comment7.target=void\ updateWeights(double[][][])
-comment8.params=layerIn\ exOut\ weightChange
-comment8.target=void\ backPropagate(double[][],\ double[],\ double[][][])
+comment8.params=layerIn\ exOut\ weightChange\ lrChange
+comment8.target=void\ backPropagate(double[][],\ double[],\ double[][][],\ double)
 comment9.params=input
 comment9.target=double[]\ checkInputs(double[])
 numComments=14

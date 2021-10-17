@@ -127,7 +127,7 @@ public class ModelAgent
             for (int j = 0; j < trnInput.length; j++) {
                 double[][] layerIn = new double[cColumns+2][];
                 checkInputs(trnInput[j],layerIn);
-                backPropagate(layerIn,trnOut[j],weightChange);
+                backPropagate(layerIn,trnOut[j],weightChange, ((lr/iterations))*i );
             }
             updateWeights(weightChange);
         }
@@ -149,7 +149,7 @@ public class ModelAgent
     
   
 
-    private void backPropagate(double[][] layerIn,double[] exOut, double[][][] weightChange) {
+    private void backPropagate(double[][] layerIn,double[] exOut, double[][][] weightChange, double lrChange) {
         double[][] RNodeDelta = new double[layerIn.length - 1][];
         int last = layerIn.length - 1;
         for (int i = 0;i < last;i++) {
@@ -171,7 +171,8 @@ public class ModelAgent
         for (int i=0;i<brain.length;i++)
             for (int j = 0; j < brain[i].length; j++)
                 for (int k = 0; k < brain[i][j].length; k++)
-                    weightChange[i][j][k] += RNodeDelta[i][j]*layerIn[i][k]*lr;
+                    weightChange[i][j][k] += RNodeDelta[i][j]*layerIn[i][k]* (lr - lrChange);
+                    System.out.println("Learning Rate: " + (lr-lrChange));
         //System.out.println(Arrays.deepToString(brain));
     }
     
