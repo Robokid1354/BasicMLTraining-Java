@@ -16,15 +16,17 @@ public class ModelAgent
     private int cInputs;
     private int cOutputs;
     private Equation actFunc;
-    private Equation derivFunc;
+    private Equation derFunc;
+    private Equation outActFunc;
+    private Equation outDerFunc;
     private double lr = .1;
     /**
      * Constructor for objects of class Model Agent
      * Creates brain randomly at set size
      * @param iActFunc x should be variable for the neuron output. e should be variable for Math.E
-     * @param iDerivFunc x should be the output of the neuron to derive.
+     * @param iDerFunc x should be the output of the neuron to derive.
      */
-    public ModelAgent(int c,int r,int i,int o,double learn, Equation iActFunc, Equation iDerivFunc)
+    public ModelAgent(int c,int r,int i,int o,double learn, Equation iActFunc, Equation iDerFunc)
     {
         // initialise instance variables
         cColumns = c;
@@ -33,7 +35,25 @@ public class ModelAgent
         cOutputs = o;
         lr = learn;
         actFunc = iActFunc;
-        derivFunc = iDerivFunc;
+        derFunc = iDerFunc;
+        outActFunc = iActFunc;
+        outDerFunc = iDerFunc;
+        brain = new double[cColumns+1][][];
+        createBrain();
+    }
+
+    public ModelAgent(int c,int r,int i,int o,double learn, Equation iActFunc, Equation iDerFunc, Equation oActFunc, Equation oDerFunc )
+    {
+        // initialise instance variables
+        cColumns = c;
+        cRows = r;
+        cInputs = i;
+        cOutputs = o;
+        lr = learn;
+        actFunc = iActFunc;
+        derFunc = iDerFunc;
+        outActFunc = oActFunc;
+        outDerFunc = oDerFunc;
         brain = new double[cColumns+1][][];
         createBrain();
     }
@@ -89,11 +109,13 @@ public class ModelAgent
         }
         
         for (int i = 0; i < iterations; i++) {
+            double[][][] weightChange = initializeWithSize(brain);
             for (int j = 0; j < trnInput.length; j++) {
                 double[][] layerIn = new double[cColumns+2][];
                 checkInputs(trnInput[j],layerIn);
-                backPropagate(layerIn,trnOut[j]);
+                backPropagate(layerIn,trnOut[j],weightChange);
             }
+            updateWeights(weightChange);
         }
         checkBrain();
         System.out.printf(("%" + (cInputs * 5) + "s | OUT\n"), "IN");
@@ -103,19 +125,27 @@ public class ModelAgent
         }
     }
 
-    private void backPropagate(double[][] layerIn,double[] exOut) {
+    private void updateWeights(double[][][] weightChange) {
+        //System.out.println(Arrays.deepToString(weightChange));
+        for (int i=0;i<brain.length;i++)
+            for (int j = 0; j < brain[i].length; j++)
+                for (int k = 0; k < brain[i][j].length; k++)
+                    brain[i][j][k] -= weightChange[i][j][k];
+    }
+
+    private void backPropagate(double[][] layerIn,double[] exOut, double[][][] weightChange) {
         double[][] RNodeDelta = new double[layerIn.length - 1][];
         int last = layerIn.length - 1;
         for (int i = 0;i < last;i++) {
             RNodeDelta[last-i-1] = new double[layerIn[last - i].length];
             for (int j = 0; j < layerIn[last - i].length;j++) {
                 if (i == 0) {
-                    RNodeDelta[last-i-1][j] = (layerIn[last-i][j]-exOut[j])*derivFunc.evaluate(new String[]{"x"}, new double[]{layerIn[last-i][j]});
+                    RNodeDelta[last-i-1][j] = (layerIn[last-i][j]-exOut[j])*outDerFunc.evaluate(new String[]{"x"}, new double[]{layerIn[last-i][j]});
                 } else {
                     double deltaSum = 0;
                     for (int k = 0;k<RNodeDelta[last-i].length;k++)
                         deltaSum += RNodeDelta[last-i][k]*layerIn[last-i][k];
-                    RNodeDelta[last-i-1][j] = deltaSum*derivFunc.evaluate(new String[]{"x"}, new double[]{layerIn[last-i][j]});
+                    RNodeDelta[last-i-1][j] = deltaSum*derFunc.evaluate(new String[]{"x"}, new double[]{layerIn[last-i][j]});
 
                 }
             }
@@ -125,7 +155,7 @@ public class ModelAgent
         for (int i=0;i<brain.length;i++)
             for (int j = 0; j < brain[i].length; j++)
                 for (int k = 0; k < brain[i][j].length; k++)
-                    brain[i][j][k] -= RNodeDelta[i][j]*layerIn[i][k]*lr;
+                    weightChange[i][j][k] += RNodeDelta[i][j]*layerIn[i][k]*lr;
         //System.out.println(Arrays.deepToString(brain));
     }
     
@@ -138,7 +168,10 @@ public class ModelAgent
         double[] previous = input;
         for (int i = 0; i < brain.length; i++) {
             double[] toActivate = multiplyV(previous,brain[i]);
-            previous = activate(toActivate);
+            if (i == brain.length - 1)
+                previous = activate(toActivate,outActFunc);
+            else
+                previous = activate(toActivate, actFunc);
         }
         out = previous;
         return out;
@@ -154,7 +187,10 @@ public class ModelAgent
         layerIn[0] = previous;
         for (int i = 0; i < brain.length; i++) {
             double[] toActivate = multiplyV(previous,brain[i]);
-            previous = activate(toActivate);
+            if (i == brain.length - 1)
+                previous = activate(toActivate,outActFunc);
+            else
+                previous = activate(toActivate, actFunc);
             layerIn[i+1] = previous;
         }
          
@@ -163,17 +199,17 @@ public class ModelAgent
         return out;
     }
     
-    private double[] activate(double[] tActivate) {
+    private double[] activate(double[] tActivate, Equation active) {
         double[] fActivate = new double[tActivate.length];
         for (int i = 0; i < tActivate.length; i++)
-            fActivate[i] = actFunc.evaluate(new String[]{"e","x"},new double[]{Math.E,tActivate[i]});
+            fActivate[i] = active.evaluate(new String[]{"e","x"},new double[]{Math.E,tActivate[i]});
         return fActivate;
     }
     /*
     private double[] derive(double[] tDerive) {
         double[] fDerive = new double[tDerive.length];
         for (int i = 0; i < tDerive.length; i++)
-            fDerive[i] = derivFunc.evaluate(new String[]{"e","x"},new double[]{Math.E,tDerive[i]});
+            fDerive[i] = derFunc.evaluate(new String[]{"e","x"},new double[]{Math.E,tDerive[i]});
         return fDerive;
     }
     */
@@ -191,6 +227,19 @@ public class ModelAgent
             outV[i] = val;
         }
         return outV;
+    }
+
+    private double[][][] initializeWithSize(double[][][] modelArray) {
+        double[][][] arrayToSize = new double[modelArray.length][][];
+        for (int i = 0; i < modelArray.length; i++) {
+            arrayToSize[i] = new double[modelArray[i].length][];
+            for (int j = 0; j < modelArray[i].length; j++) {
+                arrayToSize[i][j] = new double[modelArray[i][j].length];
+                for (int k = 0; k < modelArray[i][j].length; k++)
+                    arrayToSize[i][j][k] = 0;
+            }
+        }
+        return arrayToSize;
     }
 }
 
