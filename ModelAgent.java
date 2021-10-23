@@ -84,7 +84,7 @@ public class ModelAgent
             for (int k = 0; k < layer; k++)
                 brain[cColumns][j][k] = Math.random()*2-1;
         }
-        System.out.println(Arrays.deepToString(brain));
+        //System.out.println(Arrays.deepToString(brain));
     }
     
     public double[][][] checkBrain() {
@@ -92,7 +92,7 @@ public class ModelAgent
         return brain;
     }
     
-    public void loss(double[][] trnInput, double[][] trnOut){
+    public double loss(double[][] trnInput, double[][] trnOut){
         double[][] layerIn = new double[cColumns+2][];
         double p = 0;
         for(int i = 0; i < trnInput.length; i++){
@@ -100,7 +100,7 @@ public class ModelAgent
          p += Math.pow(y[0] - (trnOut[i][0]), 2);
         }
         
-        System.out.println("Loss: " + (p / trnInput.length));
+        return p/trnInput.length;
     }
     
     /**
@@ -113,30 +113,38 @@ public class ModelAgent
         if (trnInput[0].length != cInputs || trnOut[0].length != cOutputs || trnInput.length != trnOut.length) {
             System.err.println("Improper input/output sizing");
         }
+        /*
+        loss(trnInput,trnOut);
         System.out.printf(("%" + (cInputs * 5) + "s | OUT\n"), "IN");
         for (int j = 0; j < trnInput.length; j++) {
             double[] out = checkInputs(trnInput[j]);
             System.out.println(Arrays.toString(trnInput[j]) + " | " + Arrays.toString(out));
         }
+        */
         
         for (int i = 0; i < iterations; i++) {
             
-            loss(trnInput, trnOut);
+            //System.out.println(loss(trnInput, trnOut));
             
             double[][][] weightChange = initializeWithSize(brain);
             for (int j = 0; j < trnInput.length; j++) {
                 double[][] layerIn = new double[cColumns+2][];
                 checkInputs(trnInput[j],layerIn);
-                backPropagate(layerIn,trnOut[j],weightChange, ((lr/iterations))*i );
+                backPropagate(layerIn,trnOut[j],weightChange,0);
             }
             updateWeights(weightChange);
         }
+        /*
         checkBrain();
         System.out.printf(("%" + (cInputs * 5) + "s | OUT\n"), "IN");
         for (int j = 0; j < trnInput.length; j++) {
             double[] out = checkInputs(trnInput[j]);
             System.out.println(Arrays.toString(trnInput[j]) + " | " + Arrays.toString(out));
         }
+        
+        loss(trnInput,trnOut);
+        */
+        
     }
 
     private void updateWeights(double[][][] weightChange) {
@@ -160,7 +168,7 @@ public class ModelAgent
                 } else {
                     double deltaSum = 0;
                     for (int k = 0;k<RNodeDelta[last-i].length;k++)
-                        deltaSum += RNodeDelta[last-i][k]*layerIn[last-i][k];
+                        deltaSum += RNodeDelta[last-i][k]*brain[last-i][k][j];
                     RNodeDelta[last-i-1][j] = deltaSum*derFunc.evaluate(new String[]{"x"}, new double[]{layerIn[last-i][j]});
 
                 }
@@ -172,7 +180,7 @@ public class ModelAgent
             for (int j = 0; j < brain[i].length; j++)
                 for (int k = 0; k < brain[i][j].length; k++)
                     weightChange[i][j][k] += RNodeDelta[i][j]*layerIn[i][k]* (lr - lrChange);
-                    System.out.println("Learning Rate: " + (lr-lrChange));
+        //System.out.println("Learning Rate: " + (lr-lrChange));
         //System.out.println(Arrays.deepToString(brain));
     }
     
@@ -230,7 +238,13 @@ public class ModelAgent
         return fDerive;
     }
     */
-
+    
+    /**
+     * Takes dot product of vector and matrix
+     * @param vector The vector to take the dot product of
+     * @param matrix The matrix to take the dot product of
+     * @return double[] the output vector of the dot product
+     */
     private double[] multiplyV(double[] vector, double[][] matrix) {
         double[] outV = new double[matrix.length];
         if (matrix[0].length != vector.length) {
@@ -245,7 +259,12 @@ public class ModelAgent
         }
         return outV;
     }
-
+    
+    /**
+     * Initializes a 3D array with the same size as another 3D array
+     * @param modelArray the array to copy the size of
+     * @return double[][][] the initialized array
+     */
     private double[][][] initializeWithSize(double[][][] modelArray) {
         double[][][] arrayToSize = new double[modelArray.length][][];
         for (int i = 0; i < modelArray.length; i++) {
