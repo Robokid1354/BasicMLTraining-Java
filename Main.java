@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class Main {
     public static void main(String[] args) {
-        ModelAgent testAgent = new ModelAgent(2,100,100,4,0.00005,new Equation("1/(1+e^(-x))"),new Equation("x(1-x)"),new Equation("10/(1+e^(-x/10))"), new Equation("x/10(1-x/10)"));
+        ModelAgent testAgent = new ModelAgent(2,100,100,4,0.00001,new Equation("1/(1+e^(-x))"),new Equation("x(1-x)"),new Equation("10/(1+e^(-x/10))"), new Equation("x/10(1-x/10)"));
         //Generate Training data
         int dataCount = 100;
         double[][] trnInputs = new double[dataCount][100];
@@ -20,7 +20,7 @@ public class Main {
                 {0,0}
             };
             double[][] trnOutputs2 = {
-                 {1},
+                {1},
                 {1},
                 {1},
                 {0}
@@ -28,7 +28,7 @@ public class Main {
             testAgent2.train(trnInputs2,trnOutputs2,1000);
             inputTestResults(trnInputs2,trnOutputs2,testAgent2);
 
-        for (int l = 0; l < 50; l++) {
+        for (int l = 0; l < 100; l++) {
             for (int i = 0; i < dataCount; i++) {
                 Random rng = new Random();
                 double[][] image = new double[100][100];

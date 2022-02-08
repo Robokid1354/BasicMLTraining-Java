@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 public class ModelAgent
 {
-    // instance variables - replace the example below with your own
+    // instance variables
     private double[][][] brain;
     private int cColumns;
     private int cRows;

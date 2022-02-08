@@ -9,7 +9,6 @@
 //import java.util.Arrays;
 public class Tile
 {
-
     /**
      * An example of a method - replace this comment with your own
      *
@@ -23,7 +22,7 @@ public class Tile
         for (int i=1; i <= height; i++) {
             for (int j=1; j <= width; j++) {
                 tilePlane[i-1][j-1] = 0;
-                if ( i <= height/3 /*|| i > height - height/3*/ || j <= width/3 /*|| j > width - width/3*/) {
+                if ( i <= height/3 || i > height - height/3 || j <= width/3 || j > width - width/3) {
                     tilePlane[i-1][j-1] = 1;
                 }
             }
